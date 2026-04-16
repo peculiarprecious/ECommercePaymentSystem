@@ -15,7 +15,7 @@ namespace ECOMMERCEPAYMENTSYSTEM.Services.Interfaces
         // Checks if card numbers or emails are formatted correctly
         bool ValidatePaymentInfo();
 
-        // Logic to calculate fees (e.g., 2% for cards, 1% for crypto)
+        // Logic to calculate fees (e.g., 2% for cards, 2.5% for mobile money)
         decimal CalculateTransactionFee(decimal amount);
     }
 }

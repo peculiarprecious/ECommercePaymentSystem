@@ -1,7 +1,6 @@
-using System;
 using ECOMMERCEPAYMENTSYSTEM.Services.Interfaces;
 
-namespace ECOMMERCEPAYMENTSYSTEM.Services.Implementation
+namespace ECOMMERCEPAYMENTSYSTEM.Services.Implementations
 {
     public class BankTransferPayment : IPaymentMethod
     {
