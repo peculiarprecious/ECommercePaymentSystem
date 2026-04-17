@@ -6,7 +6,7 @@ namespace ECOMMERCEPAYMENTSYSTEM.Services.Implementations
     {
         // Properties
         public required string AccountNumber { get; set; }
-        public required string BankName { get; set; } 
+        public required string BankName { get; set; }
         public required string AccountHolderName { get; set; }
 
         // Interface Property
@@ -16,7 +16,7 @@ namespace ECOMMERCEPAYMENTSYSTEM.Services.Implementations
         public bool ValidatePaymentInfo()
         {
             if (string.IsNullOrWhiteSpace(AccountNumber)) return false;
-            
+
             // Check if it's exactly 10 digits and contains only numbers
             return AccountNumber.Length == 10 && long.TryParse(AccountNumber, out _);
         }
@@ -24,7 +24,7 @@ namespace ECOMMERCEPAYMENTSYSTEM.Services.Implementations
         /// Transaction fee: Flat ₦100 fee.
         public decimal CalculateTransactionFee(decimal amount)
         {
-            return 100.00m; 
+            return 100.00m;
         }
 
         /// Core Processing Logic
@@ -46,7 +46,7 @@ namespace ECOMMERCEPAYMENTSYSTEM.Services.Implementations
             Console.WriteLine($"Bank: {BankName}");
             Console.WriteLine($"Initiating transfer of {totalToTransfer:N2} (Amount: {amount:N2} + Fee: {fee:N2})");
             Console.WriteLine("Processing 1-2 business days...");
-            
+
             return true;
         }
 
@@ -54,5 +54,13 @@ namespace ECOMMERCEPAYMENTSYSTEM.Services.Implementations
         {
             return $"Method: {PaymentType} | Bank: {BankName} | Acc: {AccountNumber} | Status: Pending (1-2 Days)";
         }
+        // To Process Refund
+        public bool ProcessRefund(string transactionId, decimal amount)
+        {
+            Console.WriteLine($"Bank Refund requested for {transactionId}. Manual verification required.");
+            return true;
+        }
+
+        public int GetRefundProcessingDays() => 7; // Bank transfers take longer
     }
 }

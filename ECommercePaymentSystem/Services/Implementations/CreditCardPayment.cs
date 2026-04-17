@@ -2,7 +2,7 @@ using ECOMMERCEPAYMENTSYSTEM.Services.Interfaces;
 
 namespace ECOMMERCEPAYMENTSYSTEM.Services.Implementations
 {
-    public class CreditCardPayment : IPaymentMethod
+    public class CreditCardPayment : IPaymentMethod, IRefundable
     {
         public required string CardNumber { get; set; }
         public required string CardHolderName { get; set; }
@@ -14,11 +14,11 @@ namespace ECOMMERCEPAYMENTSYSTEM.Services.Implementations
         public bool ValidatePaymentInfo()
         {
             // Added a null/empty check to prevent crashes
-            if (string.IsNullOrWhiteSpace(CardNumber) || CardNumber.Length != 16) 
+            if (string.IsNullOrWhiteSpace(CardNumber) || CardNumber.Length != 16)
                 return false;
 
             // Check if expiry date is in the future
-            if (ExpiryDate < DateTime.Now) 
+            if (ExpiryDate < DateTime.Now)
                 return false;
 
             return true;
@@ -36,7 +36,16 @@ namespace ECOMMERCEPAYMENTSYSTEM.Services.Implementations
         }
 
         // To mask the card number
-        public string GetTransactionDetails() => 
+        public string GetTransactionDetails() =>
             $"Method: {PaymentType} | Holder: {CardHolderName} | Card: {CardNumber.Substring(12).PadLeft(16, '*')}";
+
+        // // To Process refund
+        public bool ProcessRefund(string transactionId, decimal amount)
+        {
+            Console.WriteLine($"Refund of {amount:C} initiated for Transaction: {transactionId}");
+            return true;
+        }
+
+        public int GetRefundProcessingDays() => 3; // Cards usually take 3 days
     }
 }
