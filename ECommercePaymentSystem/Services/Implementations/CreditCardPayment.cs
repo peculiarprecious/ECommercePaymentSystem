@@ -57,7 +57,7 @@ namespace ECOMMERCEPAYMENTSYSTEM.Services.Implementations
         public string GetTransactionDetails() =>
             $"Method: {PaymentType} | Holder: {CardHolderName} | Card: {CardNumber.Substring(12).PadLeft(16, '*')}";
 
-        // // To Process refund
+        //To Process refund
         public bool ProcessRefund(string transactionId, decimal amount)
         {
             Console.WriteLine($"Refund of {amount:C} initiated for Transaction: {transactionId}");
