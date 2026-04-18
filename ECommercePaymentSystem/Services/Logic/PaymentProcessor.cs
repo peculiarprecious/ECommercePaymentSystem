@@ -11,10 +11,13 @@ namespace ECOMMERCEPAYMENTSYSTEM.Services.Logic
 
         public bool ProcessTransaction(IPaymentMethod payment, decimal amount)
         {
-           
+
             bool success = false;
             string message = "Transaction Initiated";
-            string transactionId = "TXN-" + Guid.NewGuid().ToString().Substring(0, 5).ToUpper();
+            string datePart = DateTime.Now.ToString("yyyyMMdd");
+
+            //Create the ID (using a random number for the '001' part to keep it simple)
+            string transactionId = $"TXN-{datePart}-{new Random().Next(100, 999)}";
 
             try
             {
@@ -28,7 +31,7 @@ namespace ECOMMERCEPAYMENTSYSTEM.Services.Logic
                 }
 
                 // 2. Limit Check. Assumes million-naira transactions are blocked
-                if (amount > 1000000) 
+                if (amount > 1000000)
                 {
                     message = "Limit Exceeded";
                     throw new PaymentDeclinedException("Transaction exceeds limit.", "Bank Security");
@@ -36,13 +39,13 @@ namespace ECOMMERCEPAYMENTSYSTEM.Services.Logic
 
                 // 3. Process the actual payment
                 success = payment.ProcessPayment(amount);
-                
+
                 if (success)
                 {
                     message = payment.GetTransactionDetails();
                     Console.WriteLine($"[LOG] SUCCESS: {message}");
                 }
-                
+
                 return success;
             }
             catch (InvalidPaymentException ex)
@@ -75,12 +78,17 @@ namespace ECOMMERCEPAYMENTSYSTEM.Services.Logic
             }
             finally
             {
-                // 4. Log the result to access the updated success and message variables)
                 _logger.LogTransaction(transactionId, amount, success, message);
-                
+
                 Console.WriteLine($"[LOG] Session ended at {DateTime.Now}");
                 Console.WriteLine("------------------------------------------");
             }
+        }
+
+
+        public bool VerifyForRefund(string txId, string date)
+        {
+            return _logger.IsTransactionValidForRefund(txId, date);
         }
 
         public void ShowHistory()

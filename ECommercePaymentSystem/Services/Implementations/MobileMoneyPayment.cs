@@ -1,5 +1,5 @@
 using ECOMMERCEPAYMENTSYSTEM.Services.Interfaces;
-
+using ECOMMERCEPAYMENTSYSTEM.Services.Exceptions;
 namespace ECOMMERCEPAYMENTSYSTEM.Services.Implementations
 {
     public class MobileMoneyPayment : IPaymentMethod
@@ -10,21 +10,30 @@ namespace ECOMMERCEPAYMENTSYSTEM.Services.Implementations
         public required string PIN { get; set; }
 
         public string PaymentType => "Mobile Money";
-
-        /// Validation: 
-        /// 1. Must be 11 digits
-        /// 2. Must start with '0'
-        /// 3. Must be numeric only
-        /// 4. Provider must not be empty
         public bool ValidatePaymentInfo()
         {
-            if (string.IsNullOrWhiteSpace(PhoneNumber)) return false;
+            // 1. Validate Phone Number (11 digits, starts with 0, numeric only)
+            if (string.IsNullOrWhiteSpace(PhoneNumber) || PhoneNumber.Length != 11 ||
+                !PhoneNumber.StartsWith("0") || !long.TryParse(PhoneNumber, out _))
+            {
+                throw new InvalidPaymentException("Phone number must be 11 numeric digits starting with '0'.", "Mobile Money");
+            }
 
-            return PhoneNumber.Length == 11 && 
-                   PhoneNumber.StartsWith("0") && 
-                   long.TryParse(PhoneNumber, out _) && // Ensures no letters
-                   !string.IsNullOrWhiteSpace(Provider);
+            // 2. Validate Provider (MTN/Airtel/Glo - cannot be empty)
+            if (string.IsNullOrWhiteSpace(Provider))
+            {
+                throw new InvalidPaymentException("Network provider (MTN/Airtel/Glo) is required.", "Mobile Money");
+            }
+
+            // 3. Validate PIN (Example: must be at least 4 digits)
+            if (string.IsNullOrWhiteSpace(PIN) || PIN.Length < 4 || !int.TryParse(PIN, out _))
+            {
+                throw new InvalidPaymentException("Security PIN must be at least 4 numeric digits.", "Mobile Money");
+            }
+
+            return true;
         }
+
 
         // Transaction fee: 1.5% of amount
         public decimal CalculateTransactionFee(decimal amount)
@@ -33,7 +42,7 @@ namespace ECOMMERCEPAYMENTSYSTEM.Services.Implementations
         }
 
         //Processing Logic with Step-by-Step Validation
-       
+
         public bool ProcessPayment(decimal amount)
         {
             // 1. Pre-Payment Validation
@@ -43,7 +52,7 @@ namespace ECOMMERCEPAYMENTSYSTEM.Services.Implementations
                 return false;
             }
 
-            // 2. Security Check (Basic PIN validation simulation)
+            // 2. PIN validation 
             if (string.IsNullOrWhiteSpace(PIN) || PIN.Length < 4)
             {
                 Console.WriteLine("Error: Security PIN is required for Mobile Money.");
@@ -58,8 +67,8 @@ namespace ECOMMERCEPAYMENTSYSTEM.Services.Implementations
             Console.WriteLine($"\n--- {PaymentType} Transaction ---");
             Console.WriteLine($"Provider: {Provider}");
             Console.WriteLine($"Processing {total:C} (Amount: {amount:C} + 1.5% Fee: {fee:C})...");
-            Console.WriteLine("✅ Status: Instant Payment Successful!");
-            
+            Console.WriteLine("Status: Instant Payment Successful!");
+
             return true;
         }
 

@@ -4,5 +4,6 @@ namespace ECOMMERCEPAYMENTSYSTEM.Services.Interfaces
     {
         void LogTransaction(string transactionId, decimal amount, bool success, string message);
         void DisplayTransactionHistory();
+        bool IsTransactionValidForRefund(string transactionId, string transactionDate);
     }
 }

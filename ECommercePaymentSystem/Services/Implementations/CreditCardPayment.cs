@@ -1,4 +1,5 @@
 using ECOMMERCEPAYMENTSYSTEM.Services.Interfaces;
+using ECOMMERCEPAYMENTSYSTEM.Services.Exceptions;
 
 namespace ECOMMERCEPAYMENTSYSTEM.Services.Implementations
 {
@@ -7,22 +8,39 @@ namespace ECOMMERCEPAYMENTSYSTEM.Services.Implementations
         public required string CardNumber { get; set; }
         public required string CardHolderName { get; set; }
         public DateTime ExpiryDate { get; set; }
-        public required string CVV { get; set; }
+        public required string CVV { get; set; } 
 
         public string PaymentType => "Credit Card";
 
-        public bool ValidatePaymentInfo()
-        {
-            // Added a null/empty check to prevent crashes
-            if (string.IsNullOrWhiteSpace(CardNumber) || CardNumber.Length != 16)
-                return false;
+       public bool ValidatePaymentInfo()
+{
+    // 1. Validate Card Number (Length and Numeric only)
+    if (string.IsNullOrWhiteSpace(CardNumber) || CardNumber.Length != 16 || !long.TryParse(CardNumber, out _))
+    {
+        throw new InvalidPaymentException("Card number must be exactly 16 numeric digits.", "Credit Card");
+    }
 
-            // Check if expiry date is in the future
-            if (ExpiryDate < DateTime.Now)
-                return false;
+    // 2. Validate Card Holder Name (Cannot be empty)
+    if (string.IsNullOrWhiteSpace(CardHolderName))
+    {
+        throw new InvalidPaymentException("Card holder name is required.", "Credit Card");
+    }
 
-            return true;
-        }
+    // 3. Validate Expiry Date (Must be in the future)
+    if (ExpiryDate < DateTime.Now)
+    {
+        throw new InvalidPaymentException("The credit card has expired.", "Credit Card");
+    }
+
+    // 4. Validate CVV (Exactly 3 digits and numeric only)
+    if (string.IsNullOrWhiteSpace(CVV) || CVV.Length != 3 || !int.TryParse(CVV, out _))
+    {
+        throw new InvalidPaymentException("CVV must be exactly 3 numeric digits.", "Credit Card");
+    }
+
+    return true; 
+}
+
 
         public decimal CalculateTransactionFee(decimal amount) => amount * 0.025m;
 

@@ -1,8 +1,8 @@
 using ECOMMERCEPAYMENTSYSTEM.Services.Interfaces;
-
+using ECOMMERCEPAYMENTSYSTEM.Services.Exceptions;
 namespace ECOMMERCEPAYMENTSYSTEM.Services.Implementations
 {
-    public class BankTransferPayment : IPaymentMethod
+    public class BankTransferPayment : IPaymentMethod, IRefundable
     {
         // Properties
         public required string AccountNumber { get; set; }
@@ -15,10 +15,25 @@ namespace ECOMMERCEPAYMENTSYSTEM.Services.Implementations
         // Validation: Account number must be exactly 10 digits and not null.
         public bool ValidatePaymentInfo()
         {
-            if (string.IsNullOrWhiteSpace(AccountNumber)) return false;
+            // 1. Validate Account Number (10 Digits and Numeric)
+            if (string.IsNullOrWhiteSpace(AccountNumber) || AccountNumber.Length != 10 || !long.TryParse(AccountNumber, out _))
+            {
+                throw new InvalidPaymentException("Account number must be exactly 10 numeric digits.", "Bank Transfer");
+            }
 
-            // Check if it's exactly 10 digits and contains only numbers
-            return AccountNumber.Length == 10 && long.TryParse(AccountNumber, out _);
+            // 2. Validate Bank Name (Required)
+            if (string.IsNullOrWhiteSpace(BankName))
+            {
+                throw new InvalidPaymentException("Bank name is required for transfer.", "Bank Transfer");
+            }
+
+            // 3. Validate Account Holder Name (Required)
+            if (string.IsNullOrWhiteSpace(AccountHolderName))
+            {
+                throw new InvalidPaymentException("Account holder name must be provided.", "Bank Transfer");
+            }
+
+            return true;
         }
 
         /// Transaction fee: Flat ₦100 fee.
@@ -52,8 +67,14 @@ namespace ECOMMERCEPAYMENTSYSTEM.Services.Implementations
 
         public string GetTransactionDetails()
         {
-            return $"Method: {PaymentType} | Bank: {BankName} | Acc: {AccountNumber} | Status: Pending (1-2 Days)";
+
+            string maskedAcc = (AccountNumber.Length == 10)
+                ? AccountNumber.Substring(0, 3) + "****" + AccountNumber.Substring(7)
+                : AccountNumber;
+
+            return $"Method: {PaymentType,-15} | Bank: {BankName,-12} | Acc: {maskedAcc,-12} | Status: Pending (1-2 Days)";
         }
+
         // To Process Refund
         public bool ProcessRefund(string transactionId, decimal amount)
         {
